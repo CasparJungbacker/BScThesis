@@ -8,27 +8,34 @@ Goal: (1) concatenate map files, (2) interpolate merged map file to regular grid
 """
 import xarray as xr
 import matplotlib.pyplot as plt
+import os
 import numpy as np
 from scipy.interpolate import griddata
 
-path = r'O:\DCSM output sept14'
+#path = os.path.join('..', 'Data')
 
-df5 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0005_map.nc')
-df6 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0006_map.nc')
-df7 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0007_map.nc')
-df8 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0008_map.nc')
-df9 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0009_map.nc')
+
+#df5 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0005_map.nc')
+#df6 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0006_map.nc')
+#df7 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0007_map.nc')
+#df8 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0008_map.nc')
+#df9 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0009_map.nc')
     
+arg = str(sys.argv[1])
+merge_name = arg[:-3]
+
+df = xr.open_mfdataset(arg)
 
 #df_merged =    xr.concat(objs = [df5.ucx,df6.ucx,df7.ucx,df8.ucx,df9.ucx],
 #                          dim = 'nFlowElem',
 #                          # data_vars = ['ucx'],
 #                          coords = 'minimal')
 
-ucx =    xr.concat(objs = [df5.ucx,df6.ucx,df7.ucx,df8.ucx,df9.ucx],
+ucx =    xr.concat(objs = [df.ucx],
                           dim = 'nFlowElem',
                           # data_vars = ['ucx'],
                           coords = 'minimal')
+#,df6.ucx,df7.ucx,df8.ucx,df9.ucx
 
 ## variables
 # ucx - horizontal velocity west->east
@@ -100,7 +107,7 @@ uxg = xr.apply_ufunc(interp_to_grid,
                      output_dtypes = [xr.DataArray]
                      )
 
-#uxg.to_netcdf(path where to save)
+uxg.to_netcdf(merge_name + "_interpolated.nc")
 #
 #uyg = xr.apply_ufunc(interp_to_grid,
 #                     uy, xc, yc, xint, yint,
