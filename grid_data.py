@@ -30,7 +30,7 @@ df9 = df9.drop_dims(['nBndLink','nNetNode','wdim','nFlowElemContourPts','nFlowLi
 df = xr.combine_nested([df5,df6,df7,df8,df9],concat_dim='nFlowElem')
 df = df.drop(labels=['mesh2d_enclosure_container','Mesh2D','FlowElemDomain','FlowElemGlobalNr','FlowElem_bac','FlowElem_xzw','FlowElem_yzw','ucxa','ucya','timestep'])
 
-df = df.isel(time=slice(100)).transpose('nFlowElem','time','laydim')
+df = df.isel(time=slice(100, 200)).transpose('nFlowElem','time','laydim')
 
 df = df.chunk({'nFlowElem': -1,'time':1})
 
@@ -78,7 +78,6 @@ print(xint, yint)
 
 ##########################################################
 #Function to fill grid with velocity data 
-'''
 def interp_to_grid(u,xc,yc,xint,yint):
     print(u.shape,xc.shape,xint.shape) 
     print(type(u),type(xc),type(xint))
@@ -107,35 +106,34 @@ y = df4.FlowElem_xcc.values
 uxg = interp_to_grid(df4.ucx.values, x, y, xint, yint)
 uxg = xr.DataArray(uxg)
 
-uxg.to_netcdf(path+'/uxg.nc')
+uxg.to_netcdf(path+'/uxg_part_1.nc')
 
 del uxg
 
 uyg = interp_to_grid(df4.ucy.values, x, y, xint, yint)
 uyg = xr.DataArray(uyg)
 
-uyg.to_netcdf(path+'/uyg.nc')
+uyg.to_netcdf(path+'/uyg_part_1.nc')
 
 del uyg
 
 uzg = interp_to_grid(df4.ucz.values, x, y, xint, yint)
 uzg = xr.DataArray(uzg)
 
-uzg.to_netcdf(path+'/uzg.nc')
+uzg.to_netcdf(path+'/uzg_part_1.nc')
 
 del uzg
 
 rho = interp_to_grid(df4.rho.values, x, y, xint, yint)
 rho = xr.DataArray(rho)
 
-rho.to_netcdf(path+'/rho.nc')
+rho.to_netcdf(path+'/rho_part_1.nc')
 
 del rho
 
 sa1 = interp_to_grid(df4.sa1.values, x, y, xint, yint)
 sa1 = xr.DataArray(sa1)
 
-sa1.to_netcdf(path+'/sal.nc')
+sa1.to_netcdf(path+'/sal_part_1.nc')
 
 del sa1
-'''
