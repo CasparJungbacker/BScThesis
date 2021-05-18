@@ -13,13 +13,13 @@ import numpy as np
 from scipy.interpolate import griddata
 #from metpy.units import units
 
-path = r'O:\DCSM output sept14'
+path = r'../Data'
 
-df5 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0005_map.nc')
-df6 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0006_map.nc')
-df7 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0007_map.nc')
-df8 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0008_map.nc')
-df9 = xr.open_mfdataset(path+'\DCSM-FM_RW1_sept14_0009_map.nc')
+df5 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0005_map.nc')
+df6 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0006_map.nc')
+df7 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0007_map.nc')
+df8 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0008_map.nc')
+df9 = xr.open_mfdataset(path+'/DCSM-FM_RW1_sept14_0009_map.nc')
 
 df5 = df5.drop_dims(['nBndLink','nNetNode','wdim','nFlowElemContourPts','nFlowLink','nNetLink','nNetElem','nmesh2d_EnclosurePoints','nmesh2d_EnclosureInstance', 'nmesh2d_EnclosureParts'])
 df6 = df6.drop_dims(['nBndLink','nNetNode','wdim','nFlowElemContourPts','nFlowLink','nNetLink','nNetElem','nmesh2d_EnclosurePoints','nmesh2d_EnclosureInstance', 'nmesh2d_EnclosureParts'])
@@ -72,11 +72,13 @@ xint,yint = np.meshgrid(a,b) #560 lon x 600 lat
 xint = xr.DataArray(xint)
 yint = xr.DataArray(yint)
 
+print(xint, yint)
+
 #times_pd = df_merged.time
 
 ##########################################################
 #Function to fill grid with velocity data 
-
+'''
 def interp_to_grid(u,xc,yc,xint,yint):
     print(u.shape,xc.shape,xint.shape) 
     print(type(u),type(xc),type(xint))
@@ -105,34 +107,35 @@ y = df4.FlowElem_xcc.values
 uxg = interp_to_grid(df4.ucx.values, x, y, xint, yint)
 uxg = xr.DataArray(uxg)
 
-uxg.to_netcdf(path+'\\uxg.nc')
+uxg.to_netcdf(path+'/uxg.nc')
 
 del uxg
 
 uyg = interp_to_grid(df4.ucy.values, x, y, xint, yint)
 uyg = xr.DataArray(uyg)
 
-uyg.to_netcdf(path+'\\uyg.nc')
+uyg.to_netcdf(path+'/uyg.nc')
 
 del uyg
 
 uzg = interp_to_grid(df4.ucz.values, x, y, xint, yint)
 uzg = xr.DataArray(uzg)
 
-uzg.to_netcdf(path+'\\uzg.nc')
+uzg.to_netcdf(path+'/uzg.nc')
 
 del uzg
 
 rho = interp_to_grid(df4.rho.values, x, y, xint, yint)
 rho = xr.DataArray(rho)
 
-rho.to_netcdf(path+'\\rho.nc')
+rho.to_netcdf(path+'/rho.nc')
 
 del rho
 
 sa1 = interp_to_grid(df4.sa1.values, x, y, xint, yint)
 sa1 = xr.DataArray(sa1)
 
-sa1.to_netcdf(path+'\\sal.nc')
+sa1.to_netcdf(path+'/sal.nc')
 
 del sa1
+'''
