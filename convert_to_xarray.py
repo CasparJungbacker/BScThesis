@@ -22,6 +22,9 @@ def get_files():
 if __name__ == "__main__":
 
     # List of files
+    files = get_files()
+    
+    # Load from list
     ds = xr.open_mfdataset(files, combine="nested", concat_dim='dim_2', chunks={'dim_2': 10}, parallel=True)
 
     # Spatial coordinates
