@@ -11,7 +11,7 @@ def main(arg):
         print("No file provided")
         sys.exit(2)
 
-    output_fname = arg[0:-3]
+    output_fname = arg
     
     fset = FieldSet.from_parcels(basename=arg)
 
@@ -35,5 +35,5 @@ def main(arg):
     return 0
 
 if __name__ == "__main__":
-    arg = None # Enter fieldset file here
+    arg = "../Data/surface_fieldset" # Enter fieldset file here
     main(arg)
