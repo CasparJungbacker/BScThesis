@@ -15,11 +15,11 @@ def main(arg):
     
     fset = FieldSet.from_parcels(basename=arg)
 
-    pset = ParticleSet(fieldset=fset,
+    pset = ParticleSet(fieldset=fieldset,
                        pclass=JITParticle,
-                       lon=lon, # Change
-                       lat=lat, # Change
-                       time=time) # Change
+                       lon=np.linspace(4.07301, 4.082842, 10),
+                       lat=np.linspace(51.976749, 51.986356, 10),
+                       time=timedelta(hours=9).total_seconds())
 
     output_file = pset.ParticleFile(name=output_fname+"_output.nc",
                                     outputdt=timedelta(minutes=20)) # Always use 20 minutes
