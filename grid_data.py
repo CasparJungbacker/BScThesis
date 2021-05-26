@@ -30,7 +30,7 @@ df9 = df9.drop_dims(['nBndLink','nNetNode','wdim','nFlowElemContourPts','nFlowLi
 df = xr.combine_nested([df5,df6,df7,df8,df9],concat_dim='nFlowElem')
 df = df.drop(labels=['mesh2d_enclosure_container','Mesh2D','FlowElemDomain','FlowElemGlobalNr','FlowElem_bac','FlowElem_xzw','FlowElem_yzw','ucxa','ucya','timestep'])
 
-df = df.isel(time=slice(100, 200)).transpose('nFlowElem','time','laydim')
+df = df.isel(time=slice(10)).transpose('nFlowElem','time','laydim')
 
 df = df.chunk({'nFlowElem': -1,'time':1})
 
@@ -82,7 +82,7 @@ def interp_to_grid(u,xc,yc,xint,yint):
     print(u.shape,xc.shape,xint.shape) 
     print(type(u),type(xc),type(xint))
     # u = np.moveaxis(u, [0,1,2], [1,2,0] )
-    ug = griddata((xc,yc),u,(xint,yint), method='nearest', fill_value=np.nan)
+    ug = griddata((xc,yc),u,(xint,yint), method='linear', fill_value=np.nan)
     # print(ug.shape)
     return ug 
 #

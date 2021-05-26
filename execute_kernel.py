@@ -15,7 +15,7 @@ def main(arg):
     
     fset = FieldSet.from_parcels(basename=arg)
 
-    pset = ParticleSet(fieldset=fieldset,
+    pset = ParticleSet(fieldset=fset,
                        pclass=JITParticle,
                        lon=np.linspace(4.07301, 4.082842, 10),
                        lat=np.linspace(51.976749, 51.986356, 10),
@@ -35,5 +35,5 @@ def main(arg):
     return 0
 
 if __name__ == "__main__":
-    arg = "../Data/surface_fieldset" # Enter fieldset file here
+    arg = "../Data/fieldset_surface" # Enter fieldset file here
     main(arg)
