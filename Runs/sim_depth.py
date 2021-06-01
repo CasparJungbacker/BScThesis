@@ -1,9 +1,7 @@
-from attr import fields
 import cartopy.feature as cf
 import cartopy.crs as ccrs
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from parcels.field import Field
 from parcels.kernels.advection import AdvectionRK4
 import sys
 sys.path.append("..")
@@ -14,22 +12,33 @@ from datetime import timedelta
 from parcels import FieldSet, ParticleSet, AdvectionRK4_3D, JITParticle, plotTrajectoriesFile, ErrorCode
 import os
 
+
 def fieldset():
 
-    data_dir = os.path.join("..", "..", "Data_local")
+    data_dir = os.path.join("..", "..", "Data")
 
     nc_data = format_data.NCdata(data_dir)
 
+    print("Clipping Data...")
     uxg = nc_data.clip(nc_data.preprocess("uxg"))
     uyg = nc_data.clip(nc_data.preprocess("uyg"))
+    uzg = nc_data.clip(nc_data.preprocess("uzg"))
+    rho = nc_data.clip(nc_data.preprocess("rho"))
+    sal = nc_data.clip(nc_data.preprocess("sal"))
 
     ds = xr.Dataset({"U": uxg.__xarray_dataarray_variable__,
-                     "V": uyg.__xarray_dataarray_variable__})
+                     "V": uyg.__xarray_dataarray_variable__,
+                     "W": uzg.__xarray_dataarray_variable__,
+                     "R": rho.__xarray_dataarray_variable__,
+                     "S": sal.__xarray_dataarray_variable__})
 
-    variables = {"U": "U", "V": "V"}
+    variables = {"U": "U", "V": "V", "W": "W", "R": "R", "S": "S"}
 
     dimensions = {"U": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
-                  "V": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"}}
+                  "V": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
+                  "W": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
+                  "R": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
+                  "S": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"}}
 
     return ds, FieldSet.from_xarray_dataset(ds=ds, variables=variables, dimensions=dimensions)
 
@@ -44,14 +53,11 @@ def out_of_bounds(particle, fieldset, time):
         particle.lon = 4.75
 
 def main():
-
-    try:
-        fset = FieldSet.from_parcels("../../Data/surface_field")
-    except:
-        fset = FieldSet.from_parcels("../../Data_local/surface_field")
-    finally:
-        ds, fset = fieldset()
-
+    ds, fset = fieldset()
+    print("Writing fieldset...")
+    fset.write("../../Data/depth_field_with_density_salinity")
+    del fset
+    input("Writing done, press enter to continue")
     nsteps = 144*14  # Particle every 10 minutes
     lon = 4.075 * np.ones(nsteps)
     lat = 51.995 * np.ones(nsteps)

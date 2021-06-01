@@ -6,7 +6,7 @@ import geopandas
 import rioxarray
 from shapely.geometry import mapping
 
-class data_dir:
+class NCdata:
     def __init__(self, data_dir_path):
         self.data_dir = data_dir_path
 
@@ -26,7 +26,7 @@ class data_dir:
             if fnmatch.fnmatch(file, f"{dim}_part*.nc"):
                 nc_files.append(os.path.join(self.data_dir, str(file)))
 
-        ds = xr.open_mfdataset(nc_files, combine="nested", concat_dim="dim_2")
+        ds = xr.open_mfdataset(nc_files, combine="nested", concat_dim="dim_2", chunks='auto')
 
         # Spatial coordinates
         latlow = 51.75
@@ -34,7 +34,7 @@ class data_dir:
         lonlow = 3
         lonup = 4.75
 
-        res = (1/(60/0.125));
+        res = (1/(60/0.125))
         a = np.arange(lonlow+(res*1.5)/2,lonup,res*1.5) # Longitude 560 values
         b = np.arange(latlow+(res)/2,latup,res) # Latitude 600 values
 
