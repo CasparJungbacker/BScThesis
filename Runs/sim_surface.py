@@ -3,6 +3,7 @@ import cartopy.feature as cf
 import cartopy.crs as ccrs
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from numpy.core.numeric import indices
 from parcels.field import Field
 from parcels.kernels.advection import AdvectionRK4
 import sys
@@ -45,16 +46,12 @@ def out_of_bounds(particle, fieldset, time):
 
 def main():
 
-    try:
-        fset = FieldSet.from_parcels("../../Data/surface_field")
-    except:
-        fset = FieldSet.from_parcels("../../Data_local/surface_field")
-    finally:
-        ds, fset = fieldset()
+    fset = FieldSet.from_parcels("../../Data/surface_field", indices={"depth": [19]})
 
     nsteps = 144*14  # Particle every 10 minutes
     lon = 4.075 * np.ones(nsteps)
     lat = 51.995 * np.ones(nsteps)
+    depth = np.zeros(nsteps)
     time = np.arange(0, nsteps) * timedelta(minutes=10).total_seconds()
     output_dt = timedelta(minutes=10)
 
@@ -65,7 +62,7 @@ def main():
     fset.add_periodic_halo(zonal=True, meridional=True)
 
     pset = ParticleSet(fieldset=fset, pclass=JITParticle,
-                       lon=lon, lat=lat, time=time)
+                       lon=lon, lat=lat, depth=depth, time=time)
 
     output_file = pset.ParticleFile(name="surface.nc", outputdt=output_dt)
 

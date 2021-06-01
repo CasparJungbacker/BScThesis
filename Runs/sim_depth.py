@@ -55,7 +55,7 @@ def out_of_bounds(particle, fieldset, time):
 def main():
     ds, fset = fieldset()
     print("Writing fieldset...")
-    fset.write("../../Data/depth_field_with_density_salinity")
+    fset.write("../../Data_local/depth_field_with_density_salinity")
     del fset
     input("Writing done, press enter to continue")
     nsteps = 144*14  # Particle every 10 minutes
