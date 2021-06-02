@@ -2,6 +2,7 @@ import cartopy.feature as cf
 import cartopy.crs as ccrs
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import repeat
 from parcels.kernels.advection import AdvectionRK4
 import sys
 sys.path.append("..")
@@ -32,13 +33,13 @@ def fieldset():
                      "R": rho.__xarray_dataarray_variable__,
                      "S": sal.__xarray_dataarray_variable__})
 
-    variables = {"U": "U", "V": "V", "W": "W", "R": "R", "S": "S"}
+    variables = {"U": "U", "V": "V", "W": "W"}#, "R": "R", "S": "S"}
 
     dimensions = {"U": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
                   "V": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
-                  "W": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
-                  "R": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
-                  "S": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"}}
+                  "W": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"}}#,
+                  #"R": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"},
+                  #"S": {"lat": "lat", "lon": "lon", "time": "time", "depth": "depth"}}
 
     return ds, FieldSet.from_xarray_dataset(ds=ds, variables=variables, dimensions=dimensions)
 
@@ -52,16 +53,24 @@ def out_of_bounds(particle, fieldset, time):
     if particle.lon > 4.75:
         particle.lon = 4.75
 
+def sample_density(particle, fieldset, time):
+    pass
+
+def delete_particle(particle, fieldset, time):
+    particle.delete()
+
+
 def main():
-    ds, fset = fieldset()
-    print("Writing fieldset...")
-    fset.write("../../Data_local/depth_field_with_density_salinity")
-    del fset
-    input("Writing done, press enter to continue")
-    nsteps = 144*14  # Particle every 10 minutes
-    lon = 4.075 * np.ones(nsteps)
-    lat = 51.995 * np.ones(nsteps)
-    time = np.arange(0, nsteps) * timedelta(minutes=10).total_seconds()
+
+    #ds, fset = fieldset()
+    fset = FieldSet.from_parcels("../../Data_local/depth_field_with_density_salinity", extra_fields={"W": "W", "R": "R"},
+                                chunksize="auto")
+
+    npart = 20
+    lon = 4.075 * np.ones(npart)
+    lat = 51.995 * np.ones(npart)
+    repeatdt = timedelta(minutes=10)
+    depth = np.arange(0,20,1)
     output_dt = timedelta(minutes=10)
 
     fset.add_constant('halo_north', fset.U.lat[-1])
@@ -71,14 +80,14 @@ def main():
     fset.add_periodic_halo(zonal=True, meridional=True)
 
     pset = ParticleSet(fieldset=fset, pclass=JITParticle,
-                       lon=lon, lat=lat, time=time)
+                       lon=lon.tolist(), lat=lat.tolist(), depth=depth.tolist(), repeatdt=repeatdt)
 
-    output_file = pset.ParticleFile(name="surface.nc", outputdt=output_dt)
+    output_file = pset.ParticleFile(name="depth.nc", outputdt=output_dt)
 
     out_of_bounds_kernel = pset.Kernel(out_of_bounds)
 
-    pset.execute(AdvectionRK4 + out_of_bounds_kernel, runtime=timedelta(days=14),
-                 dt=output_dt, output_file=output_file, verbose_progress=True)
+    pset.execute(AdvectionRK4_3D + out_of_bounds_kernel, runtime=timedelta(days=14),
+                 dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     output_file.export()
     output_file.close()

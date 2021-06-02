@@ -48,11 +48,9 @@ def main():
 
     fset = FieldSet.from_parcels("../../Data/surface_field", indices={"depth": [19]})
 
-    nsteps = 144*14  # Particle every 10 minutes
-    lon = 4.075 * np.ones(nsteps)
-    lat = 51.995 * np.ones(nsteps)
-    depth = np.zeros(nsteps)
-    time = np.arange(0, nsteps) * timedelta(minutes=10).total_seconds()
+    lon = 4.075
+    lat = 51.995
+    repeatdt = timedelta(minutes=10)
     output_dt = timedelta(minutes=10)
 
     fset.add_constant('halo_north', fset.U.lat[-1])
@@ -62,7 +60,7 @@ def main():
     fset.add_periodic_halo(zonal=True, meridional=True)
 
     pset = ParticleSet(fieldset=fset, pclass=JITParticle,
-                       lon=lon, lat=lat, depth=depth, time=time)
+                       lon=lon, lat=lat, repeatdt=repeatdt)
 
     output_file = pset.ParticleFile(name="surface.nc", outputdt=output_dt)
 
