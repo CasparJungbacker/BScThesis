@@ -70,18 +70,24 @@ def delete_particle(particle, fieldset, time):
     particle.delete()
 
 
-def main():
+def main(timestamp, runtime, repeat=False):
 
     # write_fieldset()
+    day = timestamp[0]
+    hour = timestamp[1]
+    minute = timestamp[2]
+    runtime = timedelta(days=runtime)
+
+    output_name = f"output_with_depth_{day}_{hour}_{minute}.nc"
 
     fset = FieldSet.from_parcels("../../Data_local/depth_field_with_density_salinity", extra_fields={"W": "W", "R": "R"},
-                                chunksize="auto")
+                                 chunksize="auto")
 
     npart = 20
     lon = 4.075 * np.ones(npart)
     lat = 51.995 * np.ones(npart)
-    repeatdt = timedelta(minutes=10)
-    depth = np.arange(0,20,1)
+    repeatdt = timedelta(minutes=10) if repeat else None
+    depth = np.arange(0, 20, 1)
     output_dt = timedelta(minutes=10)
 
     fset.add_constant('halo_north', fset.U.lat[-1])
@@ -90,19 +96,20 @@ def main():
 
     fset.add_periodic_halo(zonal=True, meridional=True)
 
-    pset = ParticleSet(fieldset=fset, pclass=SampleParticleInitZero,
-                       lon=lon.tolist(), lat=lat.tolist(), depth=depth.tolist(), repeatdt=repeatdt)
-
-
+    pset = ParticleSet(fieldset=fset,
+                       pclass=SampleParticleInitZero,
+                       lon=lon, lat=lat, depth=depth,
+                       time=timedelta(days=day-17, hours=hour, minutes=minute),
+                       repeatdt=repeatdt)
 
     density_kernel = pset.Kernel(sample_density)
     out_of_bounds_kernel = pset.Kernel(out_of_bounds)
 
     pset.execute(density_kernel, dt=0)
 
-    output_file = pset.ParticleFile(name="depth.nc", outputdt=output_dt)
+    output_file = pset.ParticleFile(name=output_name, outputdt=output_dt)
 
-    pset.execute(AdvectionRK4_3D + out_of_bounds_kernel + density_kernel, runtime=timedelta(days=14),
+    pset.execute(AdvectionRK4_3D + out_of_bounds_kernel + density_kernel, runtime=runtime,
                  dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     output_file.export()
@@ -112,4 +119,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    timestamps = [(17,7,40), (17,1,10), (25,2,10), (25,10,0)] # (day, hour, minute)
+    runtime = [14, 14, 5, 5] # Days
+    repeat = False
+    for timestamp, runtime in timestamps, runtime:
+        main(timestamp, runtime, repeat)
