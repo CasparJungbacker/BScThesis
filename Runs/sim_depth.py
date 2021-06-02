@@ -99,7 +99,7 @@ def main(timestamp, runtime, repeat=False):
     pset = ParticleSet(fieldset=fset,
                        pclass=SampleParticleInitZero,
                        lon=lon, lat=lat, depth=depth,
-                       time=timedelta(days=day-17, hours=hour, minutes=minute),
+                       time=timedelta(days=day-17, hours=hour, minutes=minute).total_seconds(),
                        repeatdt=repeatdt)
 
     density_kernel = pset.Kernel(sample_density)
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     timestamps = [(17,7,40), (17,1,10), (25,2,10), (25,10,0)] # (day, hour, minute)
     runtime = [14, 14, 5, 5] # Days
     repeat = False
-    for timestamp, runtime in timestamps, runtime:
+    for timestamp, runtime in zip(timestamps, runtime):
         main(timestamp, runtime, repeat)
