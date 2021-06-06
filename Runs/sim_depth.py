@@ -88,17 +88,18 @@ def main(timestamp, runtime, repeat=False):
     print(f"Simulation on {timestamp}, for {runtime} days")
     print(50*"-") 
 
-    output_name = f"output_with_depth_{day}_{hour}_{minute}.nc"
+    output_name = f"../../Data/output_with_depth_{day}_{hour}_{minute}.nc"
 
     fset = FieldSet.from_parcels("../../Data/depth_field_with_density_salinity", extra_fields={"W": "W", "R": "R"},
                                  chunksize=False)
 
     npart = 20
-    lon = 4.1 * np.ones(npart)
-    lat = 52.125 * np.ones(npart)
+    lon = 4.075 * np.ones(npart)
+    lat = 51.995 * np.ones(npart)
     repeatdt = timedelta(minutes=10) if repeat else None
     depth = np.arange(0, 20, 1)
     output_dt = timedelta(minutes=10)
+    dtt = timedelta(seconds=30)
 
     fset.add_constant('halo_north', fset.U.lat[-1])
     fset.add_constant('halo_south', fset.U.lat[0])
@@ -120,13 +121,13 @@ def main(timestamp, runtime, repeat=False):
 
     output_file = pset.ParticleFile(name=output_name, outputdt=output_dt)
 
-    pset.execute(AdvectionRK4_3D + density_kernel, runtime=timedelta(hours=3, minutes=30),
-                 dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
+    pset.execute(AdvectionRK4_3D + density_kernel + push_from_surface_kernel, runtime=timedelta(hours=3, minutes=30),
+                 dt=dtt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     pset.repeatdt = None
 
     pset.execute(AdvectionRK4_3D + density_kernel + push_from_surface_kernel, runtime=timedelta(days = runtime),
-                 dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
+                 dt=dtt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     output_file.export()
     output_file.close()
@@ -134,8 +135,8 @@ def main(timestamp, runtime, repeat=False):
     return 0
 
 if __name__ == "__main__":
-    timestamps = [(17,7,40)]#, (17,1,10), (18,9,0)] # (day, hour, minute)
-    runtime = [5]#, 13, 12] # Days
+    timestamps = [(17,7,40), (17,1,10), (25, 2, 10), (25,10,0)] # (day, hour, minute)
+    runtime = [13, 13, 5, 5]
     repeat = True
     for timestamp, runtime in zip(timestamps, runtime):
         main(timestamp, runtime, repeat)
