@@ -15,6 +15,7 @@ from parcels import AdvectionRK4_3D
 from parcels import JITParticle
 from parcels import ErrorCode
 from parcels import Variable
+import unbeaching_kernels
 
 
 def fieldset():
@@ -61,7 +62,8 @@ def out_of_bounds(particle, fieldset, time):
         particle.lon = 4.75
 
 class SampleParticleInitZero(JITParticle):
-    density = Variable("density", initial=0)
+    density = Variable("density", initial=0.)
+    beached = Variable("beached", initial=0.)
 
 def sample_density(particle, fieldset, time):
     particle.density = fieldset.R[time, particle.depth, particle.lat, particle.lon]
@@ -94,8 +96,8 @@ def main(timestamp, runtime, repeat=False):
                                  chunksize=False)
 
     npart = 20
-    lon = 4.1 * np.ones(npart)
-    lat = 52.125 * np.ones(npart)
+    lon = 4.075 * np.ones(npart)
+    lat = 51.995 * np.ones(npart)
     repeatdt = timedelta(minutes=10) if repeat else None
     depth = np.arange(0, 20, 1)
     output_dt = timedelta(minutes=10)
@@ -113,19 +115,20 @@ def main(timestamp, runtime, repeat=False):
                        repeatdt=repeatdt)
 
     density_kernel = pset.Kernel(sample_density)
-    out_of_bounds_kernel = pset.Kernel(out_of_bounds)
-    push_from_surface_kernel = pset.Kernel(push_from_surface)
+
+    kernel = pset.Kernel(unbeaching_kernels.AdvectionRK4_3D) + pset.Kernel(unbeaching_kernels.BeachTesting_3D) + \
+        pset.Kernel(unbeaching_kernels.UnBeaching) + density_kernel + pset.Kernel(out_of_bounds) + pset.Kernel(push_from_surface)
 
     pset.execute(density_kernel, dt=0)
 
     output_file = pset.ParticleFile(name=output_name, outputdt=output_dt)
 
-    pset.execute(AdvectionRK4_3D + density_kernel, runtime=timedelta(hours=3, minutes=30),
+    pset.execute(kernel, runtime=timedelta(hours=3, minutes=30),
                  dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     pset.repeatdt = None
 
-    pset.execute(AdvectionRK4_3D + density_kernel + push_from_surface_kernel, runtime=timedelta(days = runtime),
+    pset.execute(kernel, runtime=timedelta(days = runtime),
                  dt=output_dt, output_file=output_file, verbose_progress=True, recovery={ErrorCode.ErrorOutOfBounds: delete_particle})
 
     output_file.export()
@@ -135,7 +138,7 @@ def main(timestamp, runtime, repeat=False):
 
 if __name__ == "__main__":
     timestamps = [(17,7,40)]#, (17,1,10), (18,9,0)] # (day, hour, minute)
-    runtime = [5]#, 13, 12] # Days
+    runtime = [1]#, 13, 12] # Days
     repeat = True
     for timestamp, runtime in zip(timestamps, runtime):
         main(timestamp, runtime, repeat)
