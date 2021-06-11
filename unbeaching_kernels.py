@@ -70,6 +70,6 @@ def BeachTesting_3D(particle, fieldset, time):
 
 def UnBeaching(particle, fieldset, time):
     if particle.beached == 4:
-        particle.lon += 0.001 * particle.dt
-        particle.lat += 0.001 * particle.dt
+        particle.lon -= 0.1 * particle.dt
+        particle.lat += 0.1 * particle.dt
         particle.beached = 0
